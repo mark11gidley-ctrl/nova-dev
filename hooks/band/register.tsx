@@ -40,8 +40,9 @@ const findPluginRoot = async ($: EngineInterface): Promise<string | null> => {
 }
 
 const bandText = async ($: EngineInterface, cwd: string, pluginRoot: string) => {
-  const run = (cmd: string) => $.process.run([cmd, '-I', SCRIPT(pluginRoot), '--band', cwd]).catch(() => undefined)
-  const out = (await run('py -3')) ?? (await run('python'))
+  // The launcher and its flag are separate arguments: 'py -3' as one name is not a program.
+  const run = (cmd: string, pre: string[]) => $.process.run([cmd, ...pre, '-I', SCRIPT(pluginRoot), '--band', cwd]).catch(() => undefined)
+  const out = (await run('py', ['-3'])) ?? (await run('python', []))
   return out?.exitCode === 0 ? out.stdout.trim() : 'nova-dev: not available (is Python installed?)'
 }
 
