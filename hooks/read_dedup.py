@@ -10,6 +10,7 @@ import re
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from state import cache_dir as _state_cache  # noqa: E402
+from savings import record as _record_saving  # noqa: E402
 
 
 def cache_file(session_id, cache_dir=None, agent_id=None):
@@ -55,6 +56,10 @@ def decide(mode, data, cache_dir=None):
     cache = load_cache(path)
     if mode == "pre":
         if cache.get(file_path) == fp:
+            try:
+                _record_saving("read", os.path.getsize(file_path))
+            except OSError:
+                pass
             return 2, (f"nova-dev: {file_path} was already read this session and has not changed. "
                        "Use the earlier read instead of reading it again.")
         return 0, None

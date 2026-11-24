@@ -27,7 +27,14 @@ def band_line(cwd):
     from state import get_level
     tests = test_status(cwd)
     label = {"pass": "tests pass", "fail": "tests FAIL", None: "tests -"}[tests]
-    return f"nova-dev {get_level(cwd)} | {label}"
+    line = f"nova-dev {get_level(cwd)} | {label}"
+    try:
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
+        from report import summary_line
+        line += " | " + summary_line()
+    except Exception:  # the bar must still render if the summary fails
+        pass
+    return line
 
 
 if __name__ == "__main__":

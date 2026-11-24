@@ -15,6 +15,13 @@ DEFAULTS = {
     "webhook_token": "",
     "send_names": False,  # privacy: task names (prompt text) leave the machine only when you opt in
     "big_read": 0,
+    # prices in dollars per million tokens; 0 means not set, so the report shows no money figure
+    "price_input": 0.0,
+    "price_output": 0.0,
+    "price_cache_read": 0.0,
+    "price_cache_write": 0.0,
+    # your plan limit in tokens over the last 7 days; 0 means not set
+    "plan_limit_tokens": 0,
 }
 ENV = {
     "level": "NOVA_DEV_DEFAULT",
@@ -26,6 +33,11 @@ ENV = {
     "webhook_token": "NOVA_DEV_WEBHOOK_TOKEN",
     "send_names": "NOVA_DEV_SEND_NAMES",
     "big_read": "NOVA_DEV_BIG_READ",
+    "price_input": "NOVA_DEV_PRICE_INPUT",
+    "price_output": "NOVA_DEV_PRICE_OUTPUT",
+    "price_cache_read": "NOVA_DEV_PRICE_CACHE_READ",
+    "price_cache_write": "NOVA_DEV_PRICE_CACHE_WRITE",
+    "plan_limit_tokens": "NOVA_DEV_PLAN_LIMIT_TOKENS",
 }
 SECRET = {"webhook_token"}
 
@@ -42,6 +54,8 @@ def _coerce(key, raw):
         return str(raw).strip().lower() in ("1", "true", "yes", "on")
     if isinstance(default, int):
         return int(raw)
+    if isinstance(default, float):
+        return float(raw)
     return str(raw)
 
 

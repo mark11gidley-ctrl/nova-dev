@@ -12,6 +12,7 @@ import re
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from state import cache_dir as _state_cache  # noqa: E402
+from savings import record as _record_saving  # noqa: E402
 import time
 
 QUERY = re.compile(r"^\s*(git (log|status)\b|git diff --stat|git diff --name|cat |head |tail |grep |ls |find )")
@@ -44,6 +45,10 @@ def decide_bash(data, cache_dir=None, now=None):
     key = hashlib.sha256(re.sub(r"\s", "", cmd).encode()).hexdigest()
     last = seen.get(key)
     if last is not None and now - last < DEDUP_SECONDS:
+        try:
+            _record_saving("bash")
+        except OSError:
+            pass
         return 2, (f"nova-dev: this exact command ran {int(now - last)}s ago with no edits since. "
                    "Use that output already in context.")
     seen[key] = now
