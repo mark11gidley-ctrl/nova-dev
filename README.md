@@ -65,6 +65,7 @@ Set it per project with `.claude/nova-dev.json`, or run `nova-dev-init`, which a
 | **Band** | Session ledger, HTML board, Markdown export, optional webhook |
 | **Find and explain** | `find` past prompts, `callers`, `outline`, `annotate` |
 | **Safety** | Secret redaction, secret scan, self-audit (`seccheck`), owner-only files |
+| **Video** | 27 tools (probe, trim, concat, normalize, subtitles, edit lists, shot lists). Needs ffmpeg |
 | **Agents** | `nova-scout` (locate), `nova-reader` (digest), `nova-runner` (tests), with model routing |
 
 Run `python -I scripts/nd.py help` or see `skills/nova-dev-help` for the full list.

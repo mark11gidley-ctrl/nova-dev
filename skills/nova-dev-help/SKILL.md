@@ -94,3 +94,17 @@ Run with `python -I scripts/nd.py game <name>`. Engine-agnostic tools read JSON,
 | Assets | `texture-budget`, `audio-length`, `asset-names`, `duplicate-assets` |
 | Build and telemetry | `build-budget`, `release-notes`, `session-stats`, `crash-group` |
 | Engine code | `unity-class-names`, `godot-signals` |
+
+## Video tools (27) and video skills (4)
+
+Run with `python -I scripts/nd.py video <name>`. The tools need ffmpeg and ffprobe on PATH (`winget install Gyan.FFmpeg`). Pure checks (`srt-check`, `timecode`, `shotlist`, `name-check`, `presets`) run without it.
+
+| Area | Tools |
+|------|-------|
+| Inspect | `probe`, `presets`, `check`, `loudness`, `silence`, `scenes`, `name-check` |
+| Edit | `trim`, `concat`, `aspect`, `speed`, `fade`, `watermark`, `burn-subs` |
+| Export | `thumbnail`, `frames`, `compress`, `extract-audio`, `normalize`, `gif` |
+| Subtitles and timecodes | `srt-check`, `srt-shift`, `srt-vtt`, `timecode` |
+| Planning | `edit-check`, `edit-render`, `shotlist` |
+
+Skills: `nova-dev-video-inspect`, `nova-dev-video-edit`, `nova-dev-video-subtitles`, `nova-dev-video-publish`.
