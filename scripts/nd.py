@@ -20,6 +20,11 @@ Usage: python -I scripts/nd.py <command> [args]
   find <words>           search your past prompts
   band <import|last|board|show|export>
   init [root] [level]    per-project setup
+  notes <todo|docparams|stale-notes|header-check|note-density>
+  git <branch-name|split-plan|conflicts|stashes|behind|pr-size|undo-preview>
+  quality <dead-code|duplicates|complexity|naming|import-cycles|long-lines|magic-numbers|unused-imports>
+  tests <gen-test|flaky|coverage-gap|test-names|assert-free|slow-tests>
+  ctx <always-on-size|forecast|cache-breaks|big-files>
 """
 import os
 import subprocess
@@ -35,6 +40,15 @@ SCRIPTS = {
     "secrets": "secret_scan.py", "review": "review.py", "testcheck": "testcheck.py", "find": "find_session.py",
     "band": "band.py", "init": "init.py", "seccheck": "seccheck.py", "test": "runtests.py",
     "annotate": "annotate_targets.py",
+}
+
+
+GROUPS = {
+    "notes": "tools_notes.py",      # todo, docparams, stale-notes, header-check, note-density
+    "git": "tools_git.py",          # branch-name, split-plan, conflicts, stashes, behind, pr-size, undo-preview
+    "quality": "tools_quality.py",  # dead-code, duplicates, complexity, naming, import-cycles, long-lines, magic-numbers, unused-imports
+    "tests": "tools_tests.py",      # gen-test, flaky, coverage-gap, test-names, assert-free, slow-tests
+    "ctx": "tools_ctx.py",          # always-on-size, forecast, cache-breaks, big-files
 }
 
 
@@ -62,6 +76,8 @@ def main(argv):
         else:
             diff = subprocess.run(["git", "diff", "HEAD"], capture_output=True, text=True).stdout
         return _secrets(diff)
+    if cmd in GROUPS:  # grouped tools: nd.py <group> <name> [args]
+        return run(GROUPS[cmd], args)
     if cmd in SCRIPTS:
         return run(SCRIPTS[cmd], args)
     print(f"unknown command: {cmd}\n")

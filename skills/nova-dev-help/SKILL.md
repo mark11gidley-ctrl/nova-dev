@@ -59,3 +59,16 @@ description: Quick reference for nova-dev commands, levels and what each hook do
 - Each prompt: warns once per session when the context passes 150,000 tokens (change with `NOVA_DEV_CONTEXT_WARN`), so you can `/compact` or start fresh before every turn gets expensive.
 
 Level state lives in `~/.config/nova-dev/level` (override with the `NOVA_DEV_DIR` environment variable).
+
+
+## Optional tools (30)
+
+Run with `python -I scripts/nd.py <group> <name>`. Nothing runs unless you call it.
+
+| Group | Tools |
+|-------|-------|
+| `notes` | `todo`, `docparams`, `stale-notes`, `header-check`, `note-density` |
+| `git` | `branch-name`, `split-plan`, `conflicts`, `stashes`, `behind`, `pr-size`, `undo-preview` |
+| `quality` | `dead-code`, `duplicates`, `complexity`, `naming`, `import-cycles`, `long-lines`, `magic-numbers`, `unused-imports` |
+| `tests` | `gen-test`, `flaky`, `coverage-gap`, `test-names`, `assert-free`, `slow-tests` |
+| `ctx` | `always-on-size`, `forecast`, `cache-breaks`, `big-files` |
