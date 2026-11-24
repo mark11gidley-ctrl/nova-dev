@@ -22,6 +22,20 @@ def line(data):
     return "nova-dev | " + " | ".join(parts)
 
 
+def band_data(cwd):
+    """Structured bar data as JSON for the bar UI. Missing pieces are null, never an error."""
+    from state import get_level
+    tests = test_status(cwd)
+    out = {"level": get_level(cwd), "tests": tests, "summary": None}
+    try:
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
+        from report import summary_data
+        out["summary"] = summary_data()
+    except Exception:  # the bar must still render if the summary fails
+        pass
+    return out
+
+
 def band_line(cwd):
     """One line for the band UI: level and last test result. No transcript needed."""
     from state import get_level
@@ -40,6 +54,9 @@ def band_line(cwd):
 if __name__ == "__main__":
     if len(sys.argv) > 2 and sys.argv[1] == "--band":
         print(band_line(sys.argv[2]))
+        sys.exit(0)
+    if len(sys.argv) > 2 and sys.argv[1] == "--band-json":
+        print(json.dumps(band_data(sys.argv[2])))
         sys.exit(0)
     try:
         data = json.load(sys.stdin)

@@ -130,35 +130,46 @@ footer{{margin-top:24px;color:var(--mut);font-size:.8rem}}
 SUMMARY_TTL = 300  # seconds: the transcript scan is too slow to repeat on every bar refresh
 
 
-def summary_line(now=None):
-    """One short line for the status bar, cached for SUMMARY_TTL seconds."""
+def summary_data(now=None):
+    """The bar's numbers as a dict, cached for SUMMARY_TTL seconds in summary.json."""
     import time
-    path = os.path.join(state_dir(), "summary.txt")
+    path = os.path.join(state_dir(), "summary.json")
     now_ts = time.time() if now is None else now
     try:
         if now_ts - os.path.getmtime(path) < SUMMARY_TTL:
             with open(path, encoding="utf-8") as fh:
-                return fh.read().strip()
-    except OSError:
+                return json.load(fh)
+    except (OSError, ValueError):
         pass
     now_dt = datetime.fromtimestamp(now_ts, timezone.utc)
-    prices = {k: float(settings.get(k)) for k in PRICES}
     t7 = collect(projects_dir(), 7, now_dt)
     limit = int(settings.get("plan_limit_tokens") or 0)
     context = latest_context()
     window = int(settings.get("window"))
     read = savings.load().get("read", {"count": 0, "bytes": 0})
-    parts = [f"7d {fmt(total_tokens(t7))} tok"]
-    if limit:
-        parts.append(f"limit {total_tokens(t7) / limit * 100:.0f}%")
-    if context is not None:
-        parts.append(f"ctx {context / window * 100:.0f}%")
-    parts.append(f"saved {fmt(read['count'])} reads (~{fmt(read['bytes'] // 4)} tok)")
-    line = " | ".join(parts)
+    data = {
+        "tokens7": total_tokens(t7),
+        "limit_pct": (total_tokens(t7) / limit * 100) if limit else None,
+        "context_pct": (context / window * 100) if context is not None else None,
+        "saved_reads": int(read["count"]),
+        "saved_tokens": int(read["bytes"]) // 4,
+    }
     os.makedirs(state_dir(), exist_ok=True)
     with open(path, "w", encoding="utf-8") as fh:
-        fh.write(line)
-    return line
+        json.dump(data, fh)
+    return data
+
+
+def summary_line(now=None):
+    """The same numbers as one text line, for places that cannot draw chips."""
+    d = summary_data(now)
+    parts = [f"7d {fmt(d['tokens7'])} tok"]
+    if d["limit_pct"] is not None:
+        parts.append(f"limit {d['limit_pct']:.0f}%")
+    if d["context_pct"] is not None:
+        parts.append(f"ctx {d['context_pct']:.0f}%")
+    parts.append(f"saved {fmt(d['saved_reads'])} reads (~{fmt(d['saved_tokens'])} tok)")
+    return " | ".join(parts)
 
 
 def main(argv):
