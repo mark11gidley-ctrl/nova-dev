@@ -155,6 +155,9 @@ def summary_data(now=None):
         "context_pct": (context / window * 100) if context is not None else None,
         "saved_reads": int(read["count"]),
         "saved_tokens": int(read["bytes"]) // 4,
+        # what those tokens would have cost at your input price; None until a price is set
+        "saved_cost": ((int(read["bytes"]) // 4) * float(settings.get("price_input")) / 1_000_000)
+        if float(settings.get("price_input")) else None,
     }
     os.makedirs(state_dir(), exist_ok=True)
     with open(path, "w", encoding="utf-8") as fh:
@@ -286,7 +289,12 @@ def session_page(cwd, session_id, cost=None, tests=None):
     if tests:
         card("Tests", f"{tests.get('passed', 0)} passed, {tests.get('failed', 0)} failed", "from the last test run")
     read = savings.load().get("read", {"count": 0, "bytes": 0})
+    avoided = int(read["bytes"]) // 4
+    price = float(settings.get("price_input"))
     card("Repeat reads blocked", fmt(read["count"]), "all time")
+    card("Tokens you would have used", f"~{fmt(avoided)}", "repeat file reads the guard kept out of context (estimate)")
+    card("What those would have cost", f"${avoided * price / 1_000_000:,.2f}" if price else "not set",
+         "at your input price" if price else "set price_input in config.json")
     generated = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     page = HTML.format(cards="\n".join(cards), generated=html.escape(generated))
     page = page.replace("nova-dev savings", "nova-dev session").replace("Measured from your own Claude Code transcripts.",

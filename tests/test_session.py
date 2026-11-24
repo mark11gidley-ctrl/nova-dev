@@ -69,5 +69,16 @@ page = open(page_path, encoding="utf-8").read()
 assert "Agent time" in page and "Session cost" in page and "$1.23" in page and "40 passed" in page
 assert "http://" not in page and "https://" not in page and "<script" not in page
 
+# avoided tokens and their cost: the page shows both, and the summary turns them into money at the input price
+os.environ["NOVA_DEV_PRICE_INPUT"] = "3"
+os.environ["NOVA_DEV_DIR"] = os.path.join(work, "state2")
+import savings  # noqa: E402
+savings.record("read", 4000)
+summary = report.summary_data()
+assert summary["saved_tokens"] == 1000 and abs(summary["saved_cost"] - 0.003) < 1e-12, summary
+page = open(report.session_page(cwd, "abc123"), encoding="utf-8").read()
+assert "Tokens you would have used" in page
+assert "What those would have cost" in page
+
 shutil.rmtree(work, ignore_errors=True)
 print("session: all checks passed")

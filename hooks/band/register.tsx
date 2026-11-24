@@ -21,6 +21,7 @@ type Summary = {
   context_pct: number | null
   saved_reads: number
   saved_tokens: number
+  saved_cost?: number | null
 } | null
 type BandData = {
   level: string
@@ -153,6 +154,15 @@ export const register: Register = (on) => {
         if (sm.saved_reads > 0) {
           row2.push(<Text key="saved" color="success">{`↓ ${sm.saved_reads} repeats blocked`}</Text>)
         }
+        // What the guards kept out of context: tokens, and the cost at your input price when it is set.
+        const avoided = `~${tokens(sm.saved_tokens)} tok`
+        row2.push(
+          <Text key="avoided" color="success">
+            {sm.saved_cost !== undefined && sm.saved_cost !== null
+              ? `saved ${avoided} · $${sm.saved_cost.toFixed(2)}`
+              : `saved ${avoided} · set price`}
+          </Text>
+        )
       }
     }
 
