@@ -7,8 +7,9 @@
     {
       "name": "nova-dev",
       "source": {
-        "source": "local",
-        "path": "./"
+        "source": "url",
+        "url": "https://github.com/mark11gidley-ctrl/nova-dev.git",
+        "ref": "main"
       },
       "policy": {
         "installation": "AVAILABLE",

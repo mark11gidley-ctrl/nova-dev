@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "nova-dev",
+  "description": "Nova Dev: lazy-but-complete developer mode for Claude Code and Codex, with video and game tools.",
+  "owner": {
+    "name": "Mark Gidley",
+    "url": "https://github.com/mark11gidley-ctrl"
+  },
+  "plugins": [
+    {
+      "name": "nova-dev",
+      "description": "Smallest correct change, callers and tests checked, one test for new logic, and a Skipped/Risk line on every reply.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

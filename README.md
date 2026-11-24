@@ -22,23 +22,105 @@
 
 ## Install
 
-**Claude Code**
+### What you need
+
+| Requirement | Why | Check |
+|-------------|-----|-------|
+| Claude Code 2.1.290 or newer | Plugins and the band bar | `claude --version` |
+| Python 3.9 or newer | Every hook and tool | `py -3 --version` (Windows) or `python3 --version` |
+| Node.js (LTS) | Codex CLI and the Codex hook launcher | `node --version` |
+| Git | Repository tools and the push workflow | `git --version` |
+| ffmpeg (optional) | Video tools only | `ffmpeg -version` |
+
+On Windows, the Python launcher `py -3` is preferred. A plain `python` can resolve to the Microsoft Store stub, which prints "Python was not found"; the hooks try `py -3` first, so this is handled.
+
+### Option A: Claude Code, from GitHub (recommended)
+
+In a terminal:
 
 ```
-/plugin marketplace add C:\claudeobsidainai\nova-dev
-/plugin install nova-dev@nova-dev
+claude plugin marketplace add mark11gidley-ctrl/nova-dev
+claude plugin install nova-dev@nova-dev
 ```
 
-**Codex**
+Or inside a Claude Code session, the same two commands with a leading slash: `/plugin marketplace add mark11gidley-ctrl/nova-dev`, then `/plugin install nova-dev@nova-dev`.
+
+Start a new session afterwards. The first session tells you nova-dev is installed but inactive; choose a level (see below).
+
+### Option B: Claude Code, from a local copy
+
+Use this to try a checkout without installing it:
 
 ```
-codex plugin marketplace add C:\claudeobsidainai\nova-dev
+git clone https://github.com/mark11gidley-ctrl/nova-dev.git
+claude --plugin-dir C:\path\to\nova-dev
+```
+
+`--plugin-dir` loads the plugin for that one run only.
+
+### Option C: Codex
+
+```
+codex plugin marketplace add mark11gidley-ctrl/nova-dev
 codex plugin add nova-dev@nova-dev
 ```
 
-Then run `codex`, open `/hooks`, and trust nova-dev's two hooks.
+Then trust the hooks. Codex will not run a plugin's hooks until you approve them:
 
-Requirements: Python 3 (`py -3` or `python` on PATH) and Node.js (Codex needs it anyway).
+1. Run `codex`.
+2. Type `/hooks`.
+3. Trust nova-dev's two hooks (session start and prompt submit).
+4. Start a new thread.
+
+Codex runs the session-start and prompt hooks only; the read, Bash, compact and stop guards are Claude Code only. The rules also reach Codex through `AGENTS.md`.
+
+### Check the install
+
+```
+python -I scripts/nd.py doctor
+```
+
+Run it from the plugin folder. It prints `N/N checks OK`. Any `FAIL` line says what is missing.
+
+### Choose a level
+
+Nothing is active until you choose one:
+
+```
+nova dev full
+```
+
+Or run the `nova-dev-init` skill, which asks you and writes `.claude/nova-dev.json` for the project.
+
+### Update
+
+```
+claude plugin update nova-dev@nova-dev
+codex plugin list
+```
+
+For Codex, remove and add again after an update: `codex plugin remove nova-dev@nova-dev`, then `codex plugin add nova-dev@nova-dev`. Re-trust the hooks if Codex asks.
+
+### Uninstall
+
+```
+claude plugin uninstall nova-dev@nova-dev
+claude plugin marketplace remove nova-dev
+codex plugin remove nova-dev@nova-dev
+```
+
+Your settings and data stay in `~/.config/nova-dev/`. Delete that folder to remove them.
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| The session says nova-dev is inactive | Choose a level: `nova dev full` |
+| Hooks fail with "no Python" | Install Python 3 and make sure `py -3` or `python3` works in a new terminal |
+| Codex shows "SessionStart Failed" | Trust the hooks in `/hooks`, then start a new thread |
+| `doctor` reports a missing launcher | Add Python to PATH and open a new terminal |
+| Video tools say ffmpeg is missing | `winget install Gyan.FFmpeg`, then open a new terminal |
+| The status line stays empty | Add the statusline setting in Claude Code's settings (see `skills/nova-dev-band`) |
 
 ## Choose a level
 
