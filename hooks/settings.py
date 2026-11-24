@@ -22,6 +22,8 @@ DEFAULTS = {
     "price_cache_write": 0.0,
     # your plan limit in tokens over the last 7 days; 0 means not set
     "plan_limit_tokens": 0,
+    # "full" loads the complete rules each session; "short" loads one line (fewer tokens every session)
+    "rules_style": "full",
 }
 ENV = {
     "level": "NOVA_DEV_DEFAULT",
@@ -38,6 +40,7 @@ ENV = {
     "price_cache_read": "NOVA_DEV_PRICE_CACHE_READ",
     "price_cache_write": "NOVA_DEV_PRICE_CACHE_WRITE",
     "plan_limit_tokens": "NOVA_DEV_PLAN_LIMIT_TOKENS",
+    "rules_style": "NOVA_DEV_RULES_STYLE",
 }
 SECRET = {"webhook_token"}
 

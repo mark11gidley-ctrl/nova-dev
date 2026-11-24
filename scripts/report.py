@@ -144,13 +144,11 @@ def summary_line(now=None):
     now_dt = datetime.fromtimestamp(now_ts, timezone.utc)
     prices = {k: float(settings.get(k)) for k in PRICES}
     t7 = collect(projects_dir(), 7, now_dt)
-    m7 = money(t7, prices)
     limit = int(settings.get("plan_limit_tokens") or 0)
     context = latest_context()
     window = int(settings.get("window"))
     read = savings.load().get("read", {"count": 0, "bytes": 0})
     parts = [f"7d {fmt(total_tokens(t7))} tok"]
-    parts.append("money not set" if m7 is None else f"${m7:,.2f}")
     if limit:
         parts.append(f"limit {total_tokens(t7) / limit * 100:.0f}%")
     if context is not None:

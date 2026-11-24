@@ -85,6 +85,30 @@ Run with `python -I scripts/nd.py game <name>`. Engine-agnostic tools read JSON,
 | Playtesting and design | `playtest-log`, `playtest-summary`, `design-doc` |
 | Engines | `engine-detect`, `godot-scenes`, `unity-meta`, `web-assets`, `web-bundle-size` |
 
+## Usage and money tools (10, 0.16.0)
+
+Run with `python -I scripts/nd.py usage <name>`. Money is an estimate at the prices in config.json; with no prices set it says "not set".
+
+| Tool | What it shows |
+|------|---------------|
+| `project-costs [days]` | Tokens, cost and sessions per project |
+| `limit-burndown [days]` | Daily use against `plan_limit_tokens`, and when the limit runs out at this pace |
+| `idle-sessions [hours]` | Sessions untouched for a while that still hold a large context |
+| `cache-efficiency [days]` | Cache hit rate and cache breaks per project |
+| `task-estimate <words>` | Typical tokens for tasks with those words, from the band ledger |
+| `context-alert [days]` | Sessions whose context grows much faster than typical |
+| `tool-hogs [days]` | Tools that return the most output |
+| `model-mix [days]` | Tokens per model |
+| `subagent-share [days]` | Tokens in subagents versus the main conversation |
+| `weekly-summary [file.md]` | One Markdown page for the last 7 days |
+
+## Token-saving features (0.15.0)
+
+- **Cache-break warning:** editing AGENTS.md, CLAUDE.md or rules/core.md mid-session warns once per session, because the next turn rebuilds the prompt cache.
+- **Short rules:** `rules_style` set to `short` (or `NOVA_DEV_RULES_STYLE=short`) loads one line of rules per session instead of the full text.
+- **Test-result reuse:** `nd.py test` reuses the last result when nothing in the repo has changed since it ran. Use `--force` to run again.
+- **Savings:** `nd.py savings` prints blocked repeat reads and commands. `nd.py report` writes the full page.
+
 ## More game tools (19)
 
 | Area | Tools |

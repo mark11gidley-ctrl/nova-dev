@@ -43,7 +43,7 @@ SCRIPTS = {
     "debt": "debt.py", "callers": "callers.py", "outline": "outline.py", "logs": "logsum.py",
     "secrets": "secret_scan.py", "review": "review.py", "testcheck": "testcheck.py", "find": "find_session.py",
     "band": "band.py", "init": "init.py", "seccheck": "seccheck.py", "test": "runtests.py",
-    "annotate": "annotate_targets.py", "setup": "setup.py", "report": "report.py",
+    "annotate": "annotate_targets.py", "setup": "setup.py", "report": "report.py", "savings": "savings_show.py",
 }
 
 
@@ -53,6 +53,8 @@ GROUPS = {
     "quality": "tools_quality.py",  # dead-code, duplicates, complexity, naming, import-cycles, long-lines, magic-numbers, unused-imports
     "tests": "tools_tests.py",      # gen-test, flaky, coverage-gap, test-names, assert-free, slow-tests
     "ctx": "tools_ctx.py",          # always-on-size, forecast, cache-breaks, big-files
+    "usage": "tools_usage.py",      # project-costs, limit-burndown, idle-sessions, cache-efficiency, task-estimate,
+                                    # context-alert, tool-hogs, model-mix, subagent-share, weekly-summary
     "game": "game_tools.py",
     "video": "video_tools.py",      # 27 commands: inspect, edit, export, subtitles, planning        # 17 engine-agnostic tools + engine-detect and 4 engine checks
 }
@@ -68,13 +70,39 @@ def status_text():
     return f"level (this folder): {get_level(os.getcwd())}\n{summary()}"
 
 
+def version_text():
+    import json
+    path = os.path.join(HERE, "..", ".claude-plugin", "plugin.json")
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh).get("version", "unknown")
+
+
+def config_path():
+    """Where settings live. Creates an empty config the first time so it is easy to find and edit."""
+    from state import state_dir
+    path = os.path.join(state_dir(), "config.json")
+    if not os.path.exists(path):
+        os.makedirs(state_dir(), exist_ok=True)
+        with open(path, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write("{\n  \"context_warn\": 150000\n}\n")
+    return path
+
+
 def main(argv):
     if not argv or argv[0] in ("-h", "--help", "help"):
+        if len(argv) > 1 and argv[1] in GROUPS:  # nd.py help <group> shows that group's commands
+            return run(GROUPS[argv[1]], [])
         print(__doc__)
         return 0
     cmd, args = argv[0], argv[1:]
     if cmd == "status":
         print(status_text())
+        return 0
+    if cmd == "version":
+        print(version_text())
+        return 0
+    if cmd == "config":
+        print(config_path())
         return 0
     if cmd == "secrets":
         if subprocess.run(["git", "diff", "--cached", "--quiet"], capture_output=True).returncode != 0:
@@ -86,8 +114,11 @@ def main(argv):
         return run(GROUPS[cmd], args)
     if cmd in SCRIPTS:
         return run(SCRIPTS[cmd], args)
-    print(f"unknown command: {cmd}\n")
-    print(__doc__)
+    import difflib
+    known = list(SCRIPTS) + list(GROUPS) + ["status", "secrets", "version", "config", "help"]
+    close = difflib.get_close_matches(cmd, known, n=3, cutoff=0.6)
+    print(f"unknown command: {cmd}" + (f". Did you mean: {', '.join(close)}?" if close else ""))
+    print("Run: nd.py help   (or nd.py help <group>)")
     return 2
 
 

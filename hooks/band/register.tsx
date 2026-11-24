@@ -52,7 +52,11 @@ export const register: Register = (on) => {
     const { Box, Text, Button } = $.ui.resolve(e)
     const cwd = await $.session.cwd()
     const pluginRoot = await findPluginRoot($)
-    const line = pluginRoot ? await bandText($, cwd, pluginRoot) : 'nova-dev: plugin folder not found in the plugin cache'
+    const base = pluginRoot ? await bandText($, cwd, pluginRoot) : 'nova-dev: plugin folder not found in the plugin cache'
+    // Money is the cost Claude Code reports for this session, the same figure ponytail's band shows.
+    const usage = await $.session.usage().catch(() => undefined)
+    const cost = usage?.cost?.usd
+    const line = typeof cost === 'number' ? `${base} | session $${cost.toFixed(2)}` : base
     const failing = line.includes('FAIL')
 
     const bar = (

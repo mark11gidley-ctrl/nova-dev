@@ -66,6 +66,16 @@
         ]
       },
       {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 -I \"${CLAUDE_PLUGIN_ROOT}/hooks/cache_guard.py\" || python -I \"${CLAUDE_PLUGIN_ROOT}/hooks/cache_guard.py\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
         "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
         "hooks": [
           {

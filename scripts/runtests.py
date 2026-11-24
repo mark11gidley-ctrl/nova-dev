@@ -48,10 +48,47 @@ def log_path(root):
     return os.path.join(root, ".claude", "last_test_output.txt")
 
 
+def cached_result(root):
+    """The last saved result, if nothing has changed since it was written. Returns (exit_code, text) or None.
+
+    Reused only inside a git repository, and only when no file in the working tree is newer than the log and
+    no commit is newer than the log. Anything else means the tests run again."""
+    path = log_path(root)
+    if not os.path.isfile(path):
+        return None
+    log_time = os.path.getmtime(path)
+    status = subprocess.run(["git", "-C", root, "status", "--porcelain"], capture_output=True, text=True)
+    head = subprocess.run(["git", "-C", root, "log", "-1", "--format=%ct"], capture_output=True, text=True)
+    if status.returncode != 0 or head.returncode != 0 or not head.stdout.strip():
+        return None
+    if int(head.stdout.strip()) > log_time:
+        return None
+    for line in status.stdout.splitlines():
+        rel = line[3:].split(" -> ")[-1].strip('"')
+        full = os.path.join(root, rel)
+        if not os.path.exists(full) or os.path.getmtime(full) > log_time:
+            return None
+    with open(path, encoding="utf-8", errors="ignore") as fh:
+        text = fh.read()
+    last = text.rfind("nova-dev: RESULT ")
+    if last < 0:
+        return None
+    return (0 if text[last:].startswith("nova-dev: RESULT pass") else 1), text
+
+
 if __name__ == "__main__":
+    force = "--force" in sys.argv[1:]
+    args = [a for a in sys.argv[1:] if a != "--force"]
     cwd = os.getcwd()
     root = git_root(cwd) or cwd
-    cmd = sys.argv[1:] or detect(root)
+    if not force and not args:
+        cached = cached_result(root)
+        if cached:
+            code, text = cached
+            print("cached: nothing changed since the last test run; showing that result (use --force to run again)")
+            print("\n".join(text.splitlines()[-6:]))
+            sys.exit(code)
+    cmd = args or detect(root)
     if not cmd:
         print("nova-dev: no test command found. Pass one, e.g. runtests.py python -m pytest")
         sys.exit(2)
