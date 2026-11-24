@@ -90,7 +90,9 @@ check("typo suggestion", r.returncode == 2 and "version" in r.stdout, r.stdout)
 r = run([os.path.join(HOOKS, "statusline.py"), "--band", work])
 check("band text", r.returncode == 0 and "nova-dev" in r.stdout, r.stderr[-200:])
 r = run([os.path.join(HOOKS, "statusline.py"), "--band-json", work])
-check("band json", r.returncode == 0 and json.loads(r.stdout).get("level") is not None, r.stderr[-200:])
+band = json.loads(r.stdout) if r.returncode == 0 else {}
+check("band json", band.get("level") is not None, r.stderr[-200:])
+check("band summary is not silently empty", band.get("summary") is not None, "summary is null: a bar number is failing")
 
 # 6. the bar module: it reads the JSON output, and its brackets balance
 bar = open(os.path.join(HOOKS, "band", "register.tsx"), encoding="utf-8").read()

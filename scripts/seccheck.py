@@ -32,6 +32,7 @@ ALLOW = {
     ("tests/test_band.py", "plain http URL"): "test asserts that an http webhook is refused",
     ("tests/test_report.py", "plain http URL"): "test asserts that the report has no external links",
     ("tests/test_sweep.py", "plain http URL"): "test asserts that the report has no external links",
+    ("tests/test_session.py", "plain http URL"): "test asserts that the page has no external links",
     ("tests/test_security.py", "eval/exec"): "test strings name the patterns",
     ("tests/test_security.py", "plain http URL"): "test strings name the patterns",
     ("tests/test_security.py", "hardcoded token"): "test strings name the patterns",

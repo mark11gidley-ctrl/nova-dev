@@ -1,6 +1,6 @@
 {
   "name": "nova-dev",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "description": "Nova Dev: a lazy-but-complete developer mode for Claude Code and Codex. Writes the smallest change that fully works, checks every caller, adds one test for new logic, and cuts token waste.",
   "author": {
     "name": "nova-dev contributors"

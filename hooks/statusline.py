@@ -22,16 +22,22 @@ def line(data):
     return "nova-dev | " + " | ".join(parts)
 
 
-def band_data(cwd):
+def band_data(cwd, session_id=None):
     """Structured bar data as JSON for the bar UI. Missing pieces are null, never an error."""
     from state import get_level
+    from tests_gate import counts
     tests = test_status(cwd)
-    out = {"level": get_level(cwd), "tests": tests, "summary": None}
+    found = counts(cwd)
+    out = {"level": get_level(cwd), "tests": tests, "summary": None, "project": os.path.basename(os.path.normpath(cwd)),
+           "tests_counts": {"passed": found[0], "failed": found[1]} if found else None, "session": None}
     try:
         sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
-        from report import summary_data
+        from report import session_metrics_cached, summary_data, transcript_path
         out["summary"] = summary_data()
-    except Exception:  # the bar must still render if the summary fails
+        path = transcript_path(cwd, session_id)
+        if path:
+            out["session"] = session_metrics_cached(path)
+    except Exception:  # the bar must still render if a number fails
         pass
     return out
 
@@ -56,7 +62,7 @@ if __name__ == "__main__":
         print(band_line(sys.argv[2]))
         sys.exit(0)
     if len(sys.argv) > 2 and sys.argv[1] == "--band-json":
-        print(json.dumps(band_data(sys.argv[2])))
+        print(json.dumps(band_data(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else None)))
         sys.exit(0)
     try:
         data = json.load(sys.stdin)

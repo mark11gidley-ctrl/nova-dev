@@ -8,7 +8,9 @@ Nothing is sent anywhere; the file is local and has no external links.
 """
 import glob
 import html
+import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 
@@ -172,7 +174,139 @@ def summary_line(now=None):
     return " | ".join(parts)
 
 
+def transcript_path(cwd, session_id):
+    """Claude Code keeps a session at projects/<folder>/<session>.jsonl, where the folder is the working path
+    with ':', '\\' and '/' turned into '-'. Falls back to a search when the folder name differs."""
+    if not session_id:
+        return None
+    base = os.path.join(os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(os.path.expanduser("~"), ".claude"), "projects")
+    direct = os.path.join(base, re.sub(r"[:\\/]", "-", cwd or ""), f"{session_id}.jsonl")
+    if os.path.isfile(direct):
+        return direct
+    hits = glob.glob(os.path.join(base, "*", f"{session_id}.jsonl"))
+    return hits[0] if hits else None
+
+
+def session_metrics(path):
+    """Tokens, turns, context, and agent time for one session. Agent time is measured from the transcript:
+    for each prompt you sent, the time until the last reply before your next prompt."""
+    from usage import read_usage
+    usage, _ = read_usage(path)
+    tuples = [t for _ts, t in usage.values()]
+    totals = {"input": 0, "output": 0, "cache_read": 0, "cache_create": 0}
+    for i, o, r, c in tuples:
+        totals["input"] += i
+        totals["output"] += o
+        totals["cache_read"] += r
+        totals["cache_create"] += c
+    last = list(usage.values())[-1][1] if usage else (0, 0, 0, 0)
+    agent_ms = 0
+    start = last_reply = None
+    with open(path, encoding="utf-8", errors="ignore") as fh:
+        for line in fh:
+            try:
+                rec = json.loads(line)
+            except ValueError:
+                continue
+            ts = _parse(rec.get("timestamp"))
+            if ts is None:
+                continue
+            if rec.get("type") == "user":
+                content = (rec.get("message") or {}).get("content", "")
+                is_prompt = isinstance(content, str) or (
+                    isinstance(content, list) and any(isinstance(c, dict) and c.get("type") == "text" for c in content))
+                if is_prompt:
+                    if start is not None and last_reply is not None:
+                        agent_ms += int((last_reply - start).total_seconds() * 1000)
+                    start, last_reply = ts, None
+            elif rec.get("type") == "assistant" and start is not None:
+                last_reply = ts
+    if start is not None and last_reply is not None:
+        agent_ms += int((last_reply - start).total_seconds() * 1000)
+    return dict(totals, turns=len(tuples), context=last[0] + last[2] + last[3], agent_ms=agent_ms)
+
+
+def session_metrics_cached(path):
+    """session_metrics, reused until the transcript's size or modification time changes."""
+    import hashlib
+    st = os.stat(path)
+    digest = hashlib.sha256(os.path.abspath(path).encode("utf-8")).hexdigest()[:24]
+    cache = os.path.join(state_dir(), "cache", f"session-{digest}.json")
+    try:
+        with open(cache, encoding="utf-8") as fh:
+            data = json.load(fh)
+        if data.get("size") == st.st_size and data.get("mtime") == st.st_mtime_ns:
+            return data["metrics"]
+    except (OSError, ValueError, KeyError):
+        pass
+    metrics = session_metrics(path)
+    os.makedirs(os.path.dirname(cache), exist_ok=True)
+    with open(cache, "w", encoding="utf-8") as fh:
+        json.dump({"size": st.st_size, "mtime": st.st_mtime_ns, "metrics": metrics}, fh)
+    return metrics
+
+
+def _parse(text):
+    try:
+        return datetime.fromisoformat((text or "").replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def clock(ms):
+    s = int(ms // 1000)
+    h, rem = divmod(s, 3600)
+    m, sec = divmod(rem, 60)
+    return f"{h}h {m:02d}m" if h else f"{m}m {sec:02d}s"
+
+
+def session_page(cwd, session_id, cost=None, tests=None):
+    """A pop-out page with everything about the current session. Local, no external links."""
+    path = transcript_path(cwd, session_id)
+    if not path:
+        raise SystemExit("no transcript found for this session yet")
+    m = session_metrics_cached(path)
+    window = int(settings.get("window"))
+    cards = []
+
+    def card(label, value, note=""):
+        cards.append(f'<div class="card"><div class="label">{html.escape(label)}</div>'
+                     f'<div class="value">{html.escape(str(value))}</div>'
+                     f'<div class="note">{html.escape(note)}</div></div>')
+
+    card("Session cost", "not reported" if cost is None else f"${float(cost):,.2f}",
+         "the cost Claude Code reports for this session" if cost is not None else "shown in the bar when Claude Code reports it")
+    card("Agent time", clock(m["agent_ms"]), "time from your prompts to the last reply before the next one")
+    card("Turns", fmt(m["turns"]), "assistant replies in this session")
+    card("Input tokens", fmt(m["input"]), "fresh input")
+    card("Output tokens", fmt(m["output"]), "what the model wrote")
+    card("Cache read", fmt(m["cache_read"]), "input served from the prompt cache")
+    card("Cache written", fmt(m["cache_create"]), "input stored in the prompt cache")
+    card("Context now", f"{m['context'] / window * 100:.1f}%", f"{fmt(m['context'])} of {fmt(window)} tokens")
+    if tests:
+        card("Tests", f"{tests.get('passed', 0)} passed, {tests.get('failed', 0)} failed", "from the last test run")
+    read = savings.load().get("read", {"count": 0, "bytes": 0})
+    card("Repeat reads blocked", fmt(read["count"]), "all time")
+    generated = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    page = HTML.format(cards="\n".join(cards), generated=html.escape(generated))
+    page = page.replace("nova-dev savings", "nova-dev session").replace("Measured from your own Claude Code transcripts.",
+                                                                       "This session, from its transcript.")
+    out = os.path.join(state_dir(), "session.html")
+    os.makedirs(state_dir(), exist_ok=True)
+    with open(out, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(page)
+    return out
+
+
 def main(argv):
+    if argv and argv[0] == "--session":
+        # --session <cwd> <session_id> [cost] [passed failed]
+        cost = argv[3] if len(argv) > 3 and argv[3] not in ("", "None") else None
+        tests = None
+        if len(argv) > 5 and argv[4].isdigit() and argv[5].isdigit():
+            tests = {"passed": int(argv[4]), "failed": int(argv[5])}
+        print(session_page(argv[1], argv[2], cost, tests))
+        return 0
     out = argv[0] if argv else os.path.join(state_dir(), "report.html")
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     with open(out, "w", encoding="utf-8", newline="\n") as fh:

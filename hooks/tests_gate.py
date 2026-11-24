@@ -25,6 +25,23 @@ def log_path(cwd):
     return os.path.join(root, ".claude", "last_test_output.txt") if root else None
 
 
+def counts(cwd):
+    """(passed, failed) from the last test log, or None when there is no log or no count in it."""
+    path = log_path(cwd)
+    if not path:
+        return None
+    try:
+        with open(path, encoding="utf-8", errors="ignore") as fh:
+            text = fh.read()
+    except OSError:
+        return None
+    passed = re.findall(r"(\d+) passed", text)
+    failed = re.findall(r"(\d+) failed", text)
+    if not passed and not failed:
+        return None
+    return (int(passed[-1]) if passed else 0, int(failed[-1]) if failed else 0)
+
+
 def status(cwd, now=None, fresh=FRESH_SECONDS):
     """'fail', 'pass', or None when there is no recent test log."""
     path = log_path(cwd)

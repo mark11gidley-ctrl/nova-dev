@@ -35,6 +35,10 @@ def main(data):
 if __name__ == "__main__":
     try:
         payload = json.load(sys.stdin)
+        if os.environ.get("NOVA_DEV_HOOK_LOG"):  # opt-in debug: which fields Claude Code sends to the Stop hook
+            with open(os.environ["NOVA_DEV_HOOK_LOG"], "a", encoding="utf-8") as fh:
+                fh.write(json.dumps({"stop_keys": sorted(payload.keys()), "payload": {
+                    k: (v if isinstance(v, (int, float, bool)) or v is None else str(v)[:60]) for k, v in payload.items()}}) + "\n")
     except ValueError:
         payload = {}
     sys.exit(main(payload))
