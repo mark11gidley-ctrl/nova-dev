@@ -74,6 +74,17 @@ Then trust the hooks. Codex will not run a plugin's hooks until you approve them
 
 Codex runs the session-start and prompt hooks only; the read, Bash, compact and stop guards are Claude Code only. The rules also reach Codex through `AGENTS.md`.
 
+### Option D: ChatGPT / Codex desktop app
+
+The Codex desktop app reads the same settings as the Codex CLI, so install with Option C first. Then:
+
+1. Close the Codex app completely, and open it again. It loads plugins at startup.
+2. Open a new thread.
+3. Trust the hooks as in Option C. If the app has a hooks or plugins screen, nova-dev's two hooks appear there; approve them. If it has no such screen, the approval from the CLI `/hooks` step still applies, because the app reads the same settings.
+4. Type `nova dev full` in the new thread (or any level, see below).
+
+The desktop app's exact menus can change between versions. If you can't find the hooks screen, use Option C's CLI steps, which always work.
+
 ### Check the install
 
 ```
