@@ -1,0 +1,36 @@
+{
+  "name": "nova-dev",
+  "version": "0.9.0",
+  "description": "Nova Dev: a lazy-but-complete developer mode for Claude Code and Codex. Writes the smallest change that fully works, checks every caller, adds one test for new logic, and cuts token waste.",
+  "author": {
+    "name": "nova-dev contributors"
+  },
+  "license": "MIT",
+  "keywords": [
+    "developer-tools",
+    "code-review",
+    "token-usage",
+    "testing"
+  ],
+  "skills": "./skills/",
+  "hooks": "./hooks/codex-hooks.json",
+  "interface": {
+    "displayName": "Nova Dev",
+    "shortDescription": "Lazy-but-complete developer mode",
+    "longDescription": "Smallest correct change, callers and tests checked, one test for new logic, and a Skipped/Risk line on every reply.",
+    "developerName": "nova-dev contributors",
+    "category": "Productivity",
+    "capabilities": [
+      "Instructions",
+      "Lifecycle hooks"
+    ],
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/icon.png",
+    "brandColor": "#0f172a",
+    "defaultPrompt": [
+      "Use nova dev full for this task.",
+      "Review this diff with nova dev review.",
+      "Find the smallest correct implementation."
+    ]
+  }
+}

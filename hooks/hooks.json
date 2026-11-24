@@ -1,0 +1,102 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 -I \"${CLAUDE_PLUGIN_ROOT}/hooks/session_start.py\" || python -I \"${CLAUDE_PLUGIN_ROOT}/hooks/session_start.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "py -3 -I \"${CLAUDE_PLUGIN_ROOT}/hooks/restore.py\" || python -I \"${CLAUDE_PLUGIN_ROOT}/hooks/restore.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 -I \"${CLAUDE_PLUGIN_ROOT}/hooks/prompt_submit.py\" || python -I \"${CLAUDE_PLUGIN_ROOT}/hooks/prompt_submit.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 -I \"${CLAUDE_PLUGIN_ROOT}/hooks/read_dedup.py\" pre || python -I \"${CLAUDE_PLUGIN_ROOT}/hooks/read_dedup.py\" pre",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "py -3 -I \"${CLAUDE_PLUGIN_ROOT}/hooks/bigread.py\" || python -I \"${CLAUDE_PLUGIN_ROOT}/hooks/bigread.py\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 -I \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\" bash || python -I \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\" bash",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 -I \"${CLAUDE_PLUGIN_ROOT}/hooks/read_dedup.py\" post || python -I \"${CLAUDE_PLUGIN_ROOT}/hooks/read_dedup.py\" post",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 -I \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\" clear || python -I \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\" clear",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 -I \"${CLAUDE_PLUGIN_ROOT}/hooks/precompact.py\" || python -I \"${CLAUDE_PLUGIN_ROOT}/hooks/precompact.py\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 -I \"${CLAUDE_PLUGIN_ROOT}/hooks/stop.py\" || python -I \"${CLAUDE_PLUGIN_ROOT}/hooks/stop.py\"",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "nova-dev",
+  "interface": {
+    "displayName": "Nova Dev"
+  },
+  "plugins": [
+    {
+      "name": "nova-dev",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity",
+      "description": "Nova Dev: a lazy-but-complete developer mode for Claude Code and Codex. Writes the smallest change that fully works, checks every caller, adds one test for new logic, and cuts token waste."
+    }
+  ]
+}
