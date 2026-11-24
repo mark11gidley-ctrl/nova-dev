@@ -3,7 +3,8 @@
 import type { EngineInterface, Register } from 'claude-code'
 
 const LEVELS = ['off', 'lite', 'full', 'ultra'] as const
-const SCRIPT = (root: string) => `${root}/scripts/nd.py`
+// The script ships inside the plugin, so resolve it from the plugin folder, not the project folder.
+const SCRIPT = (pluginRoot: string) => `${pluginRoot}/hooks/statusline.py`
 
 const home = async ($: EngineInterface) => (await $.env.get('USERPROFILE')) ?? (await $.env.get('HOME')) ?? ''
 const stateDir = async ($: EngineInterface) =>
@@ -16,8 +17,8 @@ const setLevel = async ($: EngineInterface, level: string) => {
 }
 
 // The band text comes from the same script the status line uses, so both always agree.
-const bandText = async ($: EngineInterface, cwd: string, root: string) => {
-  const run = (cmd: string) => $.process.run([cmd, '-I', SCRIPT(root), '--band', cwd]).catch(() => undefined)
+const bandText = async ($: EngineInterface, cwd: string, pluginRoot: string) => {
+  const run = (cmd: string) => $.process.run([cmd, '-I', SCRIPT(pluginRoot), '--band', cwd]).catch(() => undefined)
   const out = (await run('py -3')) ?? (await run('python'))
   return out?.exitCode === 0 ? out.stdout.trim() : 'nova-dev: not available (is Python installed?)'
 }
@@ -27,8 +28,8 @@ export const register: Register = (on) => {
     const below = await next(e).catch(() => undefined)
     const { Box, Text, Button } = $.ui.resolve(e)
     const cwd = await $.session.cwd()
-    const root = (await $.session.repo().catch(() => null))?.root ?? cwd
-    const line = await bandText($, cwd, root)
+    const pluginRoot = (await $.env.get('CLAUDE_PLUGIN_ROOT')) ?? (await $.session.repo().catch(() => null))?.root ?? cwd
+    const line = await bandText($, cwd, pluginRoot)
     const failing = line.includes('FAIL')
 
     const bar = (
