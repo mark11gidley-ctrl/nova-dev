@@ -17,6 +17,28 @@ const setLevel = async ($: EngineInterface, level: string) => {
 }
 
 // The band text comes from the same script the status line uses, so both always agree.
+// Find the installed nova-dev folder. Prefer CLAUDE_PLUGIN_ROOT when the host sets it; otherwise pick the
+// newest version folder in the plugin cache, because the bar cannot rely on the host setting the variable.
+const versionKey = (v: string) => v.split('.').map(n => parseInt(n, 10) || 0)
+const findPluginRoot = async ($: EngineInterface): Promise<string | null> => {
+  const env = await $.env.get('CLAUDE_PLUGIN_ROOT')
+  if (env) return env
+  const base = `${await home($)}/.claude/plugins/cache/nova-dev/nova-dev`
+  const versions = (await $.fs.list(base).catch(() => []))
+    .filter(e => e.kind === 'dir')
+    .map(e => e.name)
+    .sort((a, b) => {
+      const x = versionKey(a), y = versionKey(b)
+      for (let i = 0; i < Math.max(x.length, y.length); i++) {
+        const d = (x[i] ?? 0) - (y[i] ?? 0)
+        if (d !== 0) return d
+      }
+      return 0
+    })
+  const newest = versions[versions.length - 1]
+  return newest ? `${base}/${newest}` : null
+}
+
 const bandText = async ($: EngineInterface, cwd: string, pluginRoot: string) => {
   const run = (cmd: string) => $.process.run([cmd, '-I', SCRIPT(pluginRoot), '--band', cwd]).catch(() => undefined)
   const out = (await run('py -3')) ?? (await run('python'))
@@ -28,8 +50,8 @@ export const register: Register = (on) => {
     const below = await next(e).catch(() => undefined)
     const { Box, Text, Button } = $.ui.resolve(e)
     const cwd = await $.session.cwd()
-    const pluginRoot = (await $.env.get('CLAUDE_PLUGIN_ROOT')) ?? (await $.session.repo().catch(() => null))?.root ?? cwd
-    const line = await bandText($, cwd, pluginRoot)
+    const pluginRoot = await findPluginRoot($)
+    const line = pluginRoot ? await bandText($, cwd, pluginRoot) : 'nova-dev: plugin folder not found in the plugin cache'
     const failing = line.includes('FAIL')
 
     const bar = (
