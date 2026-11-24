@@ -20,6 +20,7 @@ Usage: python -I scripts/nd.py <command> [args]
   find <words>           search your past prompts
   band <import|last|board|show|export>
   init [root] [level]    per-project setup
+  setup [--yes]          find and install what nova-dev needs (asks first)
   notes <todo|docparams|stale-notes|header-check|note-density>
   git <branch-name|split-plan|conflicts|stashes|behind|pr-size|undo-preview>
   quality <dead-code|duplicates|complexity|naming|import-cycles|long-lines|magic-numbers|unused-imports>
@@ -41,7 +42,7 @@ SCRIPTS = {
     "debt": "debt.py", "callers": "callers.py", "outline": "outline.py", "logs": "logsum.py",
     "secrets": "secret_scan.py", "review": "review.py", "testcheck": "testcheck.py", "find": "find_session.py",
     "band": "band.py", "init": "init.py", "seccheck": "seccheck.py", "test": "runtests.py",
-    "annotate": "annotate_targets.py",
+    "annotate": "annotate_targets.py", "setup": "setup.py",
 }
 
 

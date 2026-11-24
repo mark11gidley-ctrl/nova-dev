@@ -74,16 +74,56 @@ Then trust the hooks. Codex will not run a plugin's hooks until you approve them
 
 Codex runs the session-start and prompt hooks only; the read, Bash, compact and stop guards are Claude Code only. The rules also reach Codex through `AGENTS.md`.
 
-### Option D: ChatGPT / Codex desktop app
+### Option D: ChatGPT / Codex desktop app, without a terminal
 
-The Codex desktop app reads the same settings as the Codex CLI, so install with Option C first. Then:
+Use this if you don't want to open a terminal. The desktop app's agent runs the same commands as Option C for you.
 
-1. Close the Codex app completely, and open it again. It loads plugins at startup.
-2. Open a new thread.
-3. Trust the hooks as in Option C. If the app has a hooks or plugins screen, nova-dev's two hooks appear there; approve them. If it has no such screen, the approval from the CLI `/hooks` step still applies, because the app reads the same settings.
-4. Type `nova dev full` in the new thread (or any level, see below).
+**Before you start**, install these with their normal installers (you can skip this if you already have them):
 
-The desktop app's exact menus can change between versions. If you can't find the hooks screen, use Option C's CLI steps, which always work.
+| Program | Get it from | Needed for |
+|---------|-------------|------------|
+| Python 3.9 or newer | python.org (tick "Add python.exe to PATH" on Windows) | every hook and tool |
+| Node.js LTS | nodejs.org | the Codex plugin system |
+| ffmpeg (optional) | `winget install Gyan.FFmpeg`, or gyan.dev | video tools only |
+
+**Install the plugin with the app's window**
+
+1. Open the Codex desktop app.
+2. Open the plugins screen and choose **Add marketplace**.
+3. Fill in the dialog:
+
+   | Field | Enter |
+   |-------|-------|
+   | Source | `mark11gidley-ctrl/nova-dev` |
+   | Git ref | `main` |
+   | Sparse paths | leave empty |
+
+4. Click **Add marketplace**. The app may ask you to sign in to GitHub first, because the repository is private.
+5. In the marketplace, find **nova-dev** and click **Install**.
+6. Close the app completely and open it again.
+7. Approve nova-dev's two hooks (session start and prompt submit) on the plugin or hooks screen. If there is no such screen, use Option C to approve them.
+8. In a new thread, type `nova dev status`. You should see the level and settings. Then choose a level, for example `nova dev full`.
+
+**Or ask the app's agent to do it:** paste this message into a new thread:
+
+> Install the nova-dev plugin for Codex. Add the marketplace `mark11gidley-ctrl/nova-dev`, then install `nova-dev@nova-dev` with the `codex plugin` commands. Show me each command and wait for my approval before running it.
+
+Approve each command the app shows you.
+
+**If the app won't run commands for you**, use Option C (the terminal steps), or ask someone who can run them for you.
+
+*The dialog fields are from the Codex desktop app's "Add plugin marketplace" window. Not tested end to end yet; the app's menus may differ by version.*
+
+### Install the prerequisites automatically
+
+nova-dev can find and install what it needs. It never installs silently: it lists each missing item and the exact command, then asks you.
+
+```
+python -I scripts/nd.py setup          # list what is missing and ask item by item
+python -I scripts/nd.py setup --yes    # install everything missing without asking
+```
+
+It uses winget on Windows, Homebrew on macOS, and apt on Linux. Open a new terminal afterwards so the new programs are on PATH.
 
 ### Check the install
 
