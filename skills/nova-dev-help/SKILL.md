@@ -72,3 +72,25 @@ Run with `python -I scripts/nd.py <group> <name>`. Nothing runs unless you call 
 | `quality` | `dead-code`, `duplicates`, `complexity`, `naming`, `import-cycles`, `long-lines`, `magic-numbers`, `unused-imports` |
 | `tests` | `gen-test`, `flaky`, `coverage-gap`, `test-names`, `assert-free`, `slow-tests` |
 | `ctx` | `always-on-size`, `forecast`, `cache-breaks`, `big-files` |
+
+## Game tools (22)
+
+Run with `python -I scripts/nd.py game <name>`. Engine-agnostic tools read JSON, CSV and source text. Engine checks (`engine-detect`, `godot-scenes`, `unity-meta`, `web-assets`, `web-bundle-size`) look at Godot, Unity and web project files.
+
+| Area | Tools |
+|------|-------|
+| Balance and economy | `balance-curve`, `dps`, `xp-table`, `drop-check`, `loot-sim`, `economy-check` |
+| Levels and assets | `level-check`, `asset-audit`, `asset-size`, `spritesheet`, `localization` |
+| Code checks | `rng-seed`, `save-format`, `golden-diff` |
+| Playtesting and design | `playtest-log`, `playtest-summary`, `design-doc` |
+| Engines | `engine-detect`, `godot-scenes`, `unity-meta`, `web-assets`, `web-bundle-size` |
+
+## More game tools (19)
+
+| Area | Tools |
+|------|-------|
+| Gameplay code | `frame-loop-check`, `input-map-check`, `gameplay-numbers` |
+| Levels and progression | `level-stats`, `wave-plan`, `progression-check`, `stat-sanity`, `quest-check`, `dialogue-check` |
+| Assets | `texture-budget`, `audio-length`, `asset-names`, `duplicate-assets` |
+| Build and telemetry | `build-budget`, `release-notes`, `session-stats`, `crash-group` |
+| Engine code | `unity-class-names`, `godot-signals` |

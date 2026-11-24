@@ -25,6 +25,7 @@ Usage: python -I scripts/nd.py <command> [args]
   quality <dead-code|duplicates|complexity|naming|import-cycles|long-lines|magic-numbers|unused-imports>
   tests <gen-test|flaky|coverage-gap|test-names|assert-free|slow-tests>
   ctx <always-on-size|forecast|cache-breaks|big-files>
+  game <balance-curve|dps|xp-table|drop-check|loot-sim|economy-check|level-check|asset-audit|asset-size|spritesheet|localization|rng-seed|save-format|playtest-log|playtest-summary|design-doc|golden-diff|engine-detect|godot-scenes|unity-meta|web-assets|web-bundle-size>
 """
 import os
 import subprocess
@@ -49,6 +50,7 @@ GROUPS = {
     "quality": "tools_quality.py",  # dead-code, duplicates, complexity, naming, import-cycles, long-lines, magic-numbers, unused-imports
     "tests": "tools_tests.py",      # gen-test, flaky, coverage-gap, test-names, assert-free, slow-tests
     "ctx": "tools_ctx.py",          # always-on-size, forecast, cache-breaks, big-files
+    "game": "game_tools.py",        # 17 engine-agnostic tools + engine-detect and 4 engine checks
 }
 
 
