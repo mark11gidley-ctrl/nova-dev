@@ -80,5 +80,11 @@ page = open(report.session_page(cwd, "abc123"), encoding="utf-8").read()
 assert "Tokens you would have used" in page
 assert "What those would have cost" in page
 
+# the live page refreshes itself and has no external links
+import live  # noqa: E402
+os.environ["NOVA_DEV_DIR"] = os.path.join(work, "state3")
+live_text = open(live.write_once(cwd, 7), encoding="utf-8").read()
+assert 'http-equiv="refresh" content="7"' in live_text and "https://" not in live_text
+
 shutil.rmtree(work, ignore_errors=True)
 print("session: all checks passed")

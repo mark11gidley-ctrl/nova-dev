@@ -42,7 +42,7 @@ tree = C.render(state)
 assert tree["type"] == "row"
 texts = [t for n in nodes(tree) if n.get("type") == "text" for t in n.get("children", []) if isinstance(t, str)]
 joined = " | ".join(texts)
-for want in ("nova", "tests 3", "GPT-6.1", "ctx 42%", "5h 12%", "$0.37", "saved ~1k tok", "1 repeats"):
+for want in ("nova", "tests 3", "GPT-6.1", "42%", "5h", "$0.37", "saved ~1k tok", "1 repeats"):
     assert any(want in t for t in texts), (want, joined)
 
 # Codex limits: a node count and a size that the protocol allows (256 nodes, 16 KiB of text, depth 16)

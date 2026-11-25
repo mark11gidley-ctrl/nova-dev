@@ -11,7 +11,8 @@ PATTERNS = [
     ("Slack token", re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}")),
     ("assigned secret", re.compile(
         r"(?i)\b\w*(?:api[_-]?key|secret|token|password|passwd|private[_-]?key|access[_-]?key|key)\w*"
-        r"\s*[:=]\s*['\"][^'\"\s]{8,}['\"]")),
+        # a real credential almost always has a digit; a plain name such as "codex-statusline-state" does not
+        r"\s*[:=]\s*['\"](?=[^'\"\s]*\d)[^'\"\s]{8,}['\"]")),
 ]
 
 

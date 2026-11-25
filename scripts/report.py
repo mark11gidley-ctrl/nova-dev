@@ -101,12 +101,18 @@ def build(now=None):
     return HTML.format(cards="\n".join(rows), generated=html.escape(generated))
 
 
+def meter_html(pct):
+    width = max(0, min(100, pct))
+    color = "var(--ok)" if pct < 50 else "var(--warn)" if pct < 75 else "var(--bad)"
+    return f'<div class="meter"><div class="fill" style="width:{width:.0f}%;background:{color}"></div></div>'
+
+
 HTML = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>nova-dev savings</title>
 <style>
-:root{{--bg:#f7f7f8;--fg:#111;--mut:#666;--card:#fff;--line:#e3e3e8;--accent:#0f766e}}
+:root{{--bg:#f7f7f8;--fg:#111;--mut:#666;--card:#fff;--line:#e3e3e8;--accent:#0f766e;--ok:#15803d;--warn:#b45309;--bad:#b91c1c}}
 @media (prefers-color-scheme: dark){{:root:not([data-theme=light]){{--bg:#0f1115;--fg:#eee;--mut:#9aa0a6;--card:#171a21;--line:#2a2f3a;--accent:#5eead4}}}}
 :root[data-theme=dark]{{--bg:#0f1115;--fg:#eee;--mut:#9aa0a6;--card:#171a21;--line:#2a2f3a;--accent:#5eead4}}
 body{{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}}
@@ -116,6 +122,12 @@ h1{{font-size:1.6rem;margin:0 0 4px}} .sub{{color:var(--mut);margin-bottom:20px}
 .card{{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}}
 .label{{color:var(--mut);font-size:.85rem}} .value{{font-size:1.5rem;font-weight:650;color:var(--accent);margin:4px 0}}
 .note{{color:var(--mut);font-size:.8rem}}
+.strip{{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center}}
+.chip{{border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.85rem;background:var(--card)}}
+.chip.ok{{color:var(--ok)}} .chip.bad{{color:var(--bad)}} .chip.muted{{color:var(--mut)}}
+.level-full{{color:var(--ok)}} .level-ultra{{color:var(--warn)}} .level-lite{{color:var(--accent)}}
+.meter{{margin-top:8px;height:8px;background:var(--line);border-radius:4px;overflow:hidden}}
+.fill{{height:100%;border-radius:4px}}
 footer{{margin-top:24px;color:var(--mut);font-size:.8rem}}
 </style></head>
 <body><main>
@@ -263,7 +275,15 @@ def clock(ms):
     return f"{h}h {m:02d}m" if h else f"{m}m {sec:02d}s"
 
 
-def session_page(cwd, session_id, cost=None, tests=None):
+def newest_session(cwd):
+    """The most recently written Claude Code session for this folder, or None."""
+    base = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(os.path.expanduser("~"), ".claude")
+    folder = os.path.join(base, "projects", re.sub(r"[:\\/]", "-", cwd or ""))
+    files = glob.glob(os.path.join(folder, "*.jsonl"))
+    return os.path.splitext(os.path.basename(max(files, key=os.path.getmtime)))[0] if files else None
+
+
+def session_page(cwd, session_id, cost=None, tests=None, refresh=None):
     """A pop-out page with everything about the current session. Local, no external links."""
     path = transcript_path(cwd, session_id)
     if not path:
@@ -285,7 +305,9 @@ def session_page(cwd, session_id, cost=None, tests=None):
     card("Output tokens", fmt(m["output"]), "what the model wrote")
     card("Cache read", fmt(m["cache_read"]), "input served from the prompt cache")
     card("Cache written", fmt(m["cache_create"]), "input stored in the prompt cache")
-    card("Context now", f"{m['context'] / window * 100:.1f}%", f"{fmt(m['context'])} of {fmt(window)} tokens")
+    ctx_pct = m["context"] / window * 100
+    card("Context now", f"{ctx_pct:.1f}%", f"{fmt(m['context'])} of {fmt(window)} tokens")
+    cards[-1] = cards[-1].replace("</div></div>", f'</div>{meter_html(ctx_pct)}</div>', 1)
     if tests:
         card("Tests", f"{tests.get('passed', 0)} passed, {tests.get('failed', 0)} failed", "from the last test run")
     read = savings.load().get("read", {"count": 0, "bytes": 0})
@@ -296,7 +318,16 @@ def session_page(cwd, session_id, cost=None, tests=None):
     card("What those would have cost", f"${avoided * price / 1_000_000:,.2f}" if price else "not set",
          "at your input price" if price else "set price_input in config.json")
     generated = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    page = HTML.format(cards="\n".join(cards), generated=html.escape(generated))
+    from state import get_level
+    level = get_level(cwd)
+    strip = (f'<div class="strip"><span class="chip level-{html.escape(level)}">● {html.escape(level)}</span>'
+             f'<span class="chip">{html.escape(os.path.basename(os.path.normpath(cwd)))}</span>'
+             + (f'<span class="chip ok">✓ {tests.get("passed", 0)} passed</span>' if tests and not tests.get("failed") else "")
+             + (f'<span class="chip bad">✗ {tests.get("failed", 0)} failing</span>' if tests and tests.get("failed") else "")
+             + f'<span class="chip muted">updated {datetime.now().strftime("%H:%M:%S")}</span></div>')
+    page = HTML.format(cards=strip + "\n" + "\n".join(cards), generated=html.escape(generated))
+    if refresh:  # a live page: the browser reloads it on its own
+        page = page.replace("<title>", f'<meta http-equiv="refresh" content="{int(refresh)}"><title>', 1)
     page = page.replace("nova-dev savings", "nova-dev session").replace("Measured from your own Claude Code transcripts.",
                                                                        "This session, from its transcript.")
     out = os.path.join(state_dir(), "session.html")

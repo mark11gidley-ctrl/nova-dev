@@ -30,6 +30,12 @@ def fmt(n):
     return f"{n / 1e6:.1f}M" if n >= 1e6 else f"{n / 1e3:.0f}k" if n >= 1e3 else f"{int(n)}"
 
 
+def meter(pct, width=8):
+    """A bar of block characters, filled to the percentage (over 100 stays full)."""
+    filled = max(0, min(width, round(float(pct) / 100 * width)))
+    return "█" * filled + "░" * (width - filled)
+
+
 def pct_color(pct):
     return "green" if pct < 50 else "yellow" if pct < 75 else "red"
 
@@ -93,14 +99,15 @@ def render(state):
         pct = float(ctx["used_percentage"])
         size = ctx.get("context_window_size")
         tail = f" ({fmt(ctx.get('used_tokens'))}/{fmt(size)})" if ctx.get("used_tokens") is not None and size else ""
-        kids.append(text(f"ctx {pct:.0f}%{tail}", pct_color(pct)))
+        kids.append(text(f"ctx {meter(pct)} {pct:.0f}%{tail}", pct_color(pct)))
 
     account = state.get("account") or {}
     for limit in account.get("rate_limits") or []:
         window = limit.get("primary_limit") or limit.get("secondary_limit")
         if window and window.get("used_percent") is not None:
             label = "5h" if (window.get("window_minutes") or 0) <= 300 else "wk"
-            kids.append(text(f"{label} {float(window['used_percent']):.0f}%", pct_color(float(window["used_percent"]))))
+            used = float(window["used_percent"])
+            kids.append(text(f"{label} {meter(used)} {used:.0f}%", pct_color(used)))
             break
 
     total = usage.get("total") or {}
