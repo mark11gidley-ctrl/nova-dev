@@ -22,7 +22,7 @@ TOOL = {
     "inputSchema": {"type": "object", "properties": {}},
     "_meta": {"openai/ui": {"entrypoints": [{"type": "statusline", "resourceUri": URI}]}},
 }
-SNAPSHOT_KEY = "com.openai/codex-statusline-state"
+STATE_FIELD = "com.openai/codex-statusline-state"
 
 
 def fmt(n):
@@ -142,7 +142,7 @@ def respond(method, params):
     if method == "resources/read":
         if (params or {}).get("uri") != URI:
             raise ValueError("Unknown resource URI")
-        state = (params.get("_meta") or {}).get(SNAPSHOT_KEY) or {}
+        state = (params.get("_meta") or {}).get(STATE_FIELD) or {}
         return {"contents": [{"uri": URI, "mimeType": "application/json",
                               "text": json.dumps(render(state), ensure_ascii=False)}]}
     raise KeyError(method)

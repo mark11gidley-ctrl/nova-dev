@@ -66,7 +66,7 @@ def call(messages):
 replies = call([
     {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}},
     {"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
-    {"jsonrpc": "2.0", "id": 3, "method": "resources/read", "params": {"uri": C.URI, "_meta": {C.SNAPSHOT_KEY: state}}},
+    {"jsonrpc": "2.0", "id": 3, "method": "resources/read", "params": {"uri": C.URI, "_meta": {C.STATE_FIELD: state}}},
     {"jsonrpc": "2.0", "id": 4, "method": "no/such"},
     {"jsonrpc": "2.0", "id": 5, "method": "resources/read", "params": {"uri": "ui://other"}},
 ])
